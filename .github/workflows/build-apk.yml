@@ -34,21 +34,21 @@ jobs:
           cp logo.png www/logo.png
           cp manifest.json www/manifest.json
 
-      - name: Make Real Icon + Splash from logo.png
+      - name: Init Capacitor and Add Android FIRST
+        run: |
+          npx cap init "Salaama School" com.salaama.school --web-dir=www
+          npx cap add android
+
+      - name: Make Real Icon AFTER Android Added
         run: |
           mkdir -p assets
           cp logo.png assets/icon.png
           cp logo.png assets/splash.png
           npx @capacitor/assets generate --iconBackgroundColor '#FFFFFF' --splashBackgroundColor '#FFFFFF'
 
-      - name: Init Capacitor
+      - name: Sync and Build APK
         run: |
-          npx cap init "Salaama School" com.salaama.school --web-dir=www
-          npx cap add android
           npx cap sync android
-
-      - name: Build APK
-        run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
