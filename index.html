@@ -169,6 +169,7 @@ const firebaseConfig={apiKey:"AIzaSyAfWFv0ttajIf_gJ4N9kgYU_dvn0UqcsG0",authDomai
 const DEV_EMAIL="ustadhnze@gmail.com",DEV_NAME="Jemba AbdulHamiid";
 const ALL_ROLES=['admin','headteacher','bursar','tahfiizu','dos_sec','dos_theo','teacher_sec','teacher_theo','other','parent'];
 const SCHOOL_ADMIN_ROLES=['admin','headteacher','bursar','parent'];
+const DEV_ROLES=['admin','headteacher','bursar','tahfiizu','dos_sec','dos_theo','teacher_sec','teacher_theo','other','parent'];
 const COLLECTIONS=['users','students','staff','fees','attendance','results','notices','tahfiizu','classes'];
 let auth=null,db=null,firebaseReady=false,currentUid=null,cur='admin',userName='User',selected=[],approvedRoles=[],authHandled=false,isDeveloper=false;
 function isDevEmail(e){return (e||'').toLowerCase().trim()===DEV_EMAIL}
