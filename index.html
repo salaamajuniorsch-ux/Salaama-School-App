@@ -377,8 +377,8 @@ document.getElementById('detailTitle').innerText=title;let h=`<div class="card">
 if(title==='Developer Tools'){h+=`<p>Developer: ${DEV_NAME}</p><input id="mk-admin-email" placeholder="School Admin Email"><button class="btn btn-green" onclick="makeSchoolAdmin()">Make School Admin (4 Roles)</button><div id="listBox"></div>`;document.getElementById('detailBody').innerHTML=h+'</div>';show('scr-detail');listAllUsers();return}
 if(title==='Students Management'){h+=`<input id="st-name" placeholder="Student Full Name"><input id="st-class" placeholder="Class e.g. P2"><input id="st-parent" placeholder="Parent Name"><input id="st-fees" type="number" placeholder="Fees Amount"><input id="st-paid" type="number" placeholder="Paid Amount"><button class="btn btn-green" onclick="saveStudent()">Register Student</button><div id="listBox"></div>`;document.getElementById('detailBody').innerHTML=h+'</div>';show('scr-detail');listStudents();return}
 if(title==='Staff Management'||title==='Teacher Management'){h+=`<div class="card"><h3>Pending Approvals</h3><div id="pendingList">Loading...</div><button class="btn btn-green" onclick="loadPendingUsers()">Refresh Pending</button></div><input id="sf-name" placeholder="Staff Full Name"><input id="sf-role" placeholder="Role"><input id="sf-salary" type="number" placeholder="Salary"><button class="btn btn-green" onclick="saveStaff()">Save Staff</button><div id="listBox"></div>`;document.getElementById('detailBody').innerHTML=h+'</div>';show('scr-detail');listStaff();loadPendingUsers();return}
-if(title==='Fees'||title==='Collect Fees'||title==='Generate Receipt'||title==='Students & Fee Status'){h+=`<input id="fee-student" placeholder="Student Name"><input id="fee-amount" type="number" placeholder="Amount Paid"><button class="btn btn-green" onclick="saveFee()">Record Payment</button><div id="listBox"></div>`;document.getElementById('detailBody').innerHTML=h+'</div>';show('scr-detail');listFees();return}
-if(title==='Attendance'||title==='Secular Attendance'||title==='Theology Attendance'||title==='Mark Attendance'||title==='My Attendance'){h+=`<input id="at-name" placeholder="Student / Staff Name"><select id="at-status"><option>Present</option><option>Absent</option></select><button class="btn btn-green" onclick="saveAttendance()">Save Attendance</button><div id="listBox"></div>`;document.getElementById('detailBody').innerHTML=h+'</div>';show('scr-detail');listAttendance();return}
+if(title==='Fees'||title==='Collect Fees'||title==='Generate Receipt'||title==='Students & Fee Status'){h+=`<select id="fee-student"><option>Loading students...</option></select><div id="fee-balance" style="font-size:12px;color:#2E42C2;font-weight:bold;margin-top:6px"></div><input id="fee-amount" type="number" placeholder="Amount Paid"><button class="btn btn-green" onclick="saveFee()">Record Payment</button><div id="listBox"></div>`;document.getElementById('detailBody').innerHTML=h+'</div>';show('scr-detail');listFees();fillStudentSelect('fee-student');return}
+if(title==='Attendance'||title==='Secular Attendance'||title==='Theology Attendance'||title==='Mark Attendance'||title==='My Attendance'){h+=`<select id="at-name"><option>Loading students...</option></select><select id="at-status"><option>Present</option><option>Absent</option></select><button class="btn btn-green" onclick="saveAttendance()">Save Attendance</button><div id="listBox"></div>`;document.getElementById('detailBody').innerHTML=h+'</div>';show('scr-detail');listAttendance();fillStudentSelect('at-name');return}
 if(title==='Results'||title==='Record Marks'||title==='Children Performance'){h+=`<input id="rs-name" placeholder="Student Name"><input id="rs-eng" type="number" placeholder="English /100"><input id="rs-math" type="number" placeholder="Math /100"><input id="rs-sci" type="number" placeholder="Science /100"><button class="btn btn-green" onclick="saveResult()">Save Result</button><div id="listBox"></div>`;document.getElementById('detailBody').innerHTML=h+'</div>';show('scr-detail');listResults();return}
 if(title==='Notices'||title==='Chat / Notices'||title==='Chat Headteacher'){h+=`<textarea id="nt-text" placeholder="Write Notice..."></textarea><button class="btn btn-green" onclick="saveNotice()">Send Notice</button><div id="listBox"></div>`;document.getElementById('detailBody').innerHTML=h+'</div>';show('scr-detail');listNotices();return}
 if(title==='My Child Profile'||title==='Fees Status'||title==='Tahfiizu Progress'){h+=`<div id="listBox"></div>`;document.getElementById('detailBody').innerHTML=h+'</div>';show('scr-detail');listMyChildren();return}
@@ -399,8 +399,51 @@ h+=`</div>`;document.getElementById('detailBody').innerHTML=h;show('scr-detail')
 }
 async function saveStudent(){let n=document.getElementById('st-name').value.trim();if(!n){alert('Enter Name');return}await db.collection('students').add({name:n,cls:document.getElementById('st-class').value,parentName:document.getElementById('st-parent').value,fees:Number(document.getElementById('st-fees').value||0),paid:Number(document.getElementById('st-paid').value||0),parentId:currentUid,createdAt:new Date()});alert('Student Saved');listStudents();loadDashboard()}
 async function saveStaff(){let n=document.getElementById('sf-name').value.trim();if(!n){alert('Enter Name');return}await db.collection('staff').add({name:n,role:document.getElementById('sf-role').value,salary:Number(document.getElementById('sf-salary').value||0),createdAt:new Date()});alert('Staff Saved');listStaff()}
-async function saveFee(){let n=document.getElementById('fee-student').value.trim(),a=Number(document.getElementById('fee-amount').value||0);if(!n||!a){alert('Enter Name and Amount');return}await db.collection('fees').add({student:n,amount:a,date:new Date().toDateString(),createdAt:new Date()});alert('Payment Saved');listFees();loadDashboard()}
-async function saveAttendance(){let n=document.getElementById('at-name').value.trim();if(!n){alert('Enter Name');return}await db.collection('attendance').add({name:n,status:document.getElementById('at-status').value,date:new Date().toDateString(),createdAt:new Date()});alert('Attendance Saved');listAttendance();loadDashboard()}
+async function fillStudentSelect(selectId){
+  let sel=document.getElementById(selectId);
+  if(!sel) return;
+  sel.innerHTML='<option value="">Loading students...</option>';
+  try{
+    let s=await db.collection('students').get();
+    let html='<option value="">-- Select Student --</option>';
+    let count=0;
+    s.forEach(d=>{
+      let x=d.data(); if(x._init) return; count++;
+      let bal=(Number(x.fees||0)-Number(x.paid||0));
+      html+=`<option value="${d.id}" data-paid="${x.paid||0}" data-fees="${x.fees||0}">${x.name} - ${x.cls||''} - Bal ${bal.toLocaleString()}</option>`;
+    });
+    sel.innerHTML=count?html:'<option value="">No students registered yet - Ask Admin</option>';
+    if(selectId==='fee-student'){
+      sel.onchange=function(){
+        let opt=sel.options[sel.selectedIndex];
+        let b=document.getElementById('fee-balance');
+        if(b && opt && opt.value) b.innerHTML=`Fees: ${Number(opt.dataset.fees).toLocaleString()} | Already Paid: ${Number(opt.dataset.paid).toLocaleString()} | Balance: ${(Number(opt.dataset.fees)-Number(opt.dataset.paid)).toLocaleString()}`;
+        else if(b) b.innerHTML='';
+      };
+    }
+  }catch(e){ sel.innerHTML='<option value="">Error loading students</option>'; }
+}
+async function saveFee(){
+  let sel=document.getElementById('fee-student');
+  let studentId=sel?sel.value:'';
+  let studentName=sel?sel.options[sel.selectedIndex]?.text.split(' - ')[0]:'';
+  let a=Number(document.getElementById('fee-amount').value||0);
+  if(!studentId){alert('Please SELECT a student from the list. You cannot type a name.');return;}
+  if(!a||a<=0){alert('Enter Amount Paid');return;}
+  await db.collection('fees').add({student:studentName,studentId:studentId,amount:a,date:new Date().toDateString(),createdAt:new Date(),by:userName});
+  let doc=await db.collection('students').doc(studentId).get();
+  let oldPaid=Number(doc.data().paid||0);
+  await db.collection('students').doc(studentId).update({paid:oldPaid+a});
+  alert('Payment Saved - Added to '+studentName); listFees(); loadDashboard();
+}
+ async function saveAttendance(){
+  let sel=document.getElementById('at-name');
+  let studentId=sel?sel.value:'';
+  let studentName=sel?sel.options[sel.selectedIndex]?.text.split(' - ')[0]:'';
+  if(!studentId){alert('Please SELECT a student from the list. You cannot type a name.');return;}
+  await db.collection('attendance').add({name:studentName,studentId:studentId,status:document.getElementById('at-status').value,date:new Date().toDateString(),createdAt:new Date(),by:userName});
+  alert('Attendance Saved for '+studentName); listAttendance(); loadDashboard();
+} 
 async function saveResult(){let n=document.getElementById('rs-name').value.trim();if(!n){alert('Enter Name');return}let e=Number(document.getElementById('rs-eng').value||0),m=Number(document.getElementById('rs-math').value||0),s=Number(document.getElementById('rs-sci').value||0);await db.collection('results').add({name:n,eng:e,math:m,sci:s,total:e+m+s,createdAt:new Date()});alert('Result Saved - Total '+(e+m+s));listResults()}
 async function saveNotice(){let t=document.getElementById('nt-text').value.trim();if(!t){alert('Write Notice');return}await db.collection('notices').add({text:t,by:userName,createdAt:new Date()});alert('Notice Sent');listNotices()}
 async function saveTahfiizu(){let n=document.getElementById('tf-name').value.trim();if(!n){alert('Enter Name');return}await db.collection('tahfiizu').add({name:n,from:document.getElementById('tf-from').value,to:document.getElementById('tf-to').value,note:document.getElementById('tf-note').value,date:new Date().toDateString(),createdAt:new Date()});alert('Saved');listTahfiizu()}
