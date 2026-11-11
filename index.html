@@ -329,10 +329,37 @@ let items=getDash();document.getElementById('dashGrid').innerHTML=items.map(i=>`
 }
 async function loadDashboard(){
 try{
-let sSnap=await db.collection('students').get();let fSnap=await db.collection('fees').get();let collected=0;fSnap.forEach(d=>collected+=Number(d.data().amount||0));
+let sSnap=await db.collection('students').get();
+let fSnap=await db.collection('fees').get();
+
+// FIX 1: Don't count the fake _init doc
+let realStudents=0;
+sSnap.forEach(d=>{ if(!d.data()._init) realStudents++; });
+
+let collected=0;
+fSnap.forEach(d=>{ if(!d.data()._init) collected+=Number(d.data().amount||0); });
+
 let aSnap=await db.collection('attendance').where('date','==',new Date().toDateString()).get();
-if(cur==='parent'){let my=await db.collection('students').where('parentId','==',currentUid).get();let bal=0;my.forEach(d=>bal+=Number(d.data().fees||0)-Number(d.data().paid||0));document.getElementById('dashStats').innerHTML=`<div class="stat"><b>${my.size}</b><span>My Children</span></div><div class="stat"><b>${bal.toLocaleString()}</b><span>My Balance</span></div><div class="stat"><b>${aSnap.size}</b><span>Present Today</span></div>`}
-else{document.getElementById('dashStats').innerHTML=`<div class="stat"><b>${sSnap.size}</b><span>Students</span></div><div class="stat"><b>${collected.toLocaleString()}</b><span>Collected</span></div><div class="stat"><b>${aSnap.size}</b><span>Present Today</span></div>`}
+let realPresent=0;
+aSnap.forEach(d=>{ if(!d.data()._init) realPresent++; });
+
+// FIX 2: Only finance roles see Collected
+let isFinance = ['admin','headteacher','bursar'].includes(cur) || isDeveloper;
+
+if(cur==='parent'){
+  let my=await db.collection('students').where('parentId','==',currentUid).get();
+  let bal=0; let myCount=0;
+  my.forEach(d=>{ if(d.data()._init) return; myCount++; bal+=Number(d.data().fees||0)-Number(d.data().paid||0); });
+  document.getElementById('dashStats').innerHTML=`<div class="stat"><b>${myCount}</b><span>My Children</span></div><div class="stat"><b>${bal.toLocaleString()}</b><span>My Balance</span></div><div class="stat"><b>${realPresent}</b><span>Present Today</span></div>`
+}
+else if(isFinance){
+  // Admin, Headteacher, Bursar, Developer - SEE Collected
+  document.getElementById('dashStats').innerHTML=`<div class="stat"><b>${realStudents}</b><span>Students</span></div><div class="stat"><b>${collected.toLocaleString()}</b><span>Collected</span></div><div class="stat"><b>${realPresent}</b><span>Present Today</span></div>`
+}
+else{
+  // D.O.S, Teacher, Tahfiizu, Other - NO Collected
+  document.getElementById('dashStats').innerHTML=`<div class="stat"><b>${realStudents}</b><span>Students</span></div><div class="stat"><b>${realPresent}</b><span>Present Today</span></div>`
+}
 await loadLiveStudents();
 }catch(e){document.getElementById('liveData').innerText='Error: '+e.message}
 }
