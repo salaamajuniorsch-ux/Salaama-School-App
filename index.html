@@ -69,13 +69,58 @@ input,select,textarea{width:100%;padding:11px;border:1px solid #ddd;border-radiu
 .biz small{display:block;font-weight:400;color:#555;font-size:11px;margin-top:3px}
 .flyerContact{background:#0B5ED7;color:#fff;border-radius:14px;padding:14px;text-align:center;margin-top:12px}
 .flyerContact h3{margin:0 0 6px;color:#FFE45C}
+  /* --- NEW LOADING SCREEN - MEDIUM LOGO + ANIMATION --- */
+#splash{
+  position:fixed;inset:0;z-index:999;
+  background:linear-gradient(180deg,#0A2AA8 0%,#0B3BD6 60%,#081E7A 100%);
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  animation:none;
+}
+.splash-wrap{
+  display:flex;flex-direction:column;align-items:center;
+  padding:20px;position:relative;
+  animation:splashFade 0.8s ease both;
+}
+#splash img.splash-logo{
+  width:170px;height:170px;object-fit:contain;
+  background:#fff;border-radius:50%;padding:10px;
+  box-shadow:0 10px 30px rgba(0,0,0,.35);
+  animation:splashFloat 2.2s ease-in-out infinite;
+}
+.splash-ring{
+  width:200px;height:200px;
+  border:3px solid rgba(255,255,255,.25);
+  border-top:3px solid #FFE9A8;
+  border-radius:50%;position:absolute;top:5px;
+  animation:splashSpin 2.5s linear infinite;
+}
+.splash-title{color:#FFE9A8;font-size:22px;font-weight:900;letter-spacing:2px;margin-top:18px}
+.splash-sub{color:#fff;font-size:15px;font-weight:700;letter-spacing:4px}
+.splash-motto{color:#C8E6A0;font-size:11px;letter-spacing:2px;margin-top:8px;font-weight:700}
+.splash-bar{width:170px;height:6px;background:rgba(255,255,255,.25);border-radius:99px;margin-top:18px;overflow:hidden}
+.splash-fill{height:100%;width:40%;background:#FFE9A8;border-radius:99px;animation:splashLoad 1.2s ease-in-out infinite alternate}
+.splash-loading{color:#fff;opacity:.8;font-size:12px;margin-top:8px}
+@keyframes splashFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-8px) scale(1.03)}}
+@keyframes splashSpin{to{transform:rotate(360deg)}}
+@keyframes splashLoad{from{margin-left:0}to{margin-left:60%}}
+@keyframes splashFade{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
-<div id="splash"><img src="logo.png"><h2 style="color:var(--blue);text-align:center;margin:8px 0 2px;font-size:20px">SALAAMA MUSLIM JUNIOR SCHOOL</h2><b style="color:var(--green);font-size:13px">DESTINED TO SUCCEED</b><div class="loader"><div></div></div><p style="font-size:11px;color:#888">Loading...</p></div>
+ <div id="splash">
+  <div class="splash-wrap">
+    <div class="splash-ring"></div>
+    <img class="splash-logo" src="logo.png" alt="Salaama Muslim Junior School">
+    <div class="splash-title">SALAAMA MUSLIM</div>
+    <div class="splash-sub">JUNIOR SCHOOL</div>
+    <div class="splash-motto">DESTINED TO SUCCEED</div>
+    <div class="splash-bar"><div class="splash-fill"></div></div>
+    <div class="splash-loading">Loading...</div>
+  </div>
+</div> 
 <script>setTimeout(function(){var s=document.getElementById('splash');if(s)s.style.display='none';},2600);</script>
 
 <div id="drawerOverlay" onclick="closeDrawer()"></div>
