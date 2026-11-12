@@ -541,6 +541,58 @@ function cleanPhone(p){
   if(p.startsWith('+')) p=p.slice(1);
   return p;
 }
+// === SETTINGS - PERMISSIONS + REQUIREMENTS ===
+let appSettings={allowDeleteStudents:false, allowDeleteTeachers:false, requirements:[]};
+let appSettings={allowDeleteStudents:false, allowDeleteTeachers:false, requirements:[]};
+async function loadSettings(){
+  try{
+    let d=await db.collection('settings').doc('main').get();
+    if(d.exists) appSettings={allowDeleteStudents:false,allowDeleteTeachers:false,requirements:[],...d.data()};
+  }catch(e){}
+  return appSettings;
+}
+async function saveSettings(){
+  await db.collection('settings').doc('main').set(appSettings);
+}
+async function togglePerm(key, el){
+  await loadSettings();
+  appSettings[key]=!appSettings[key];
+  await saveSettings();
+  // Move toggle right + blue
+  el.style.justifyContent=appSettings[key]?'flex-end':'flex-start';
+  el.style.background=appSettings[key]?'#2E42C2':'#ccc';
+  el.querySelector('span').innerText=appSettings[key]?'ON':'OFF';
+  alert((key==='allowDeleteStudents'?'Delete Students ':'Delete Teachers ')+(appSettings[key]?'ENABLED - Delete button will show':'DISABLED - Delete button hidden'));
+  listStudents(); listStaff();
+}
+async function addRequirement(){
+  let v=document.getElementById('new-req')?.value.trim();
+  if(!v){alert('Type requirement e.g. Uniform 35000');return}
+  await loadSettings();
+  appSettings.requirements.push(v);
+  await saveSettings();
+  alert('Added: '+v); openScreen('Settings');
+}
+async function deleteRequirement(i){
+  if(!confirm('Delete this requirement?'))return;
+  await loadSettings();
+  appSettings.requirements.splice(i,1);
+  await saveSettings();
+  openScreen('Settings');
+}
+async function deleteStudent(id, name){
+  if(!appSettings.allowDeleteStudents){alert('Delete is OFF. Turn it ON in Settings first.');return}
+  if(!confirm('Delete student '+name+' ? This cannot be undone.'))return;
+  await db.collection('students').doc(id).delete();
+  alert('Deleted '+name); listStudents(); loadDashboard();
+}
+async function deleteTeacher(id, name, isStaffDoc){
+  if(!appSettings.allowDeleteTeachers){alert('Delete is OFF. Turn it ON in Settings first.');return}
+  if(!confirm('Delete teacher '+name+' ?'))return;
+  if(isStaffDoc) await db.collection('staff').doc(id).delete();
+  else await db.collection('users').doc(id).delete();
+  alert('Deleted '+name); listStaff(); loadPendingUsers();
+}
 async function saveStudent(){
   let n=document.getElementById('st-name').value.trim();
   if(!n){alert('Enter Student Name');return}
@@ -549,6 +601,7 @@ async function saveStudent(){
   let fPhone=document.getElementById('st-father-phone')?.value.trim()||'';
   let mother=document.getElementById('st-mother')?.value.trim()||'';
   let mPhone=document.getElementById('st-mother-phone')?.value.trim()||'';
+    await loadSettings();
   await db.collection('students').add({
     name:n,
     cls:document.getElementById('st-class').value,
@@ -556,7 +609,14 @@ async function saveStudent(){
     fatherName:father, fatherPhone:fPhone,
     motherName:mother, motherPhone:mPhone,
     parentPhones:[fPhone,mPhone].filter(x=>x),
+    requirements:[...document.querySelectorAll('.st-req:checked')].map(c=>c.value),
     studentId:sid,
+    fees:Number(document.getElementById('st-fees').value||0),
+    paid:Number(document.getElementById('st-paid').value||0),
+    parentIds:[],
+    linkedParentUids:[],
+    createdAt:new Date()
+  });
     fees:Number(document.getElementById('st-fees').value||0),
     paid:Number(document.getElementById('st-paid').value||0),
     parentIds:[], // will fill when parents link with ID
