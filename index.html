@@ -291,8 +291,8 @@ if(cur==='bursar')return [['💰','Collect Fees','Collect & record'],['🧾','Ge
 if(cur==='headteacher')return [['👨‍🏫','Teacher Management','List & responsibilities'],['🏫','Classes','List + learners'],['📝','Exams Approval','Approve exams'],['✅','Attendance','Children + Teachers'],['💰','Fees Status','View fees'],['🗓️','Timetable','From DOSs']];
 if(cur==='dos_sec')return [['✅','Secular Attendance','Attendance'],['📈','Children Performance','Marks'],['👨‍🏫','Teachers Performance','Give marks'],['📚','Secular Curriculum','Topics, schemes'],['📝','Exams Approval','Approve exams']];
 if(cur==='dos_theo')return [['✅','Theology Attendance','Attendance'],['📈','Children Performance','Marks'],['👨‍🏫','Teachers Performance','Give marks'],['🕌','Theology Curriculum','Topics, schemes'],['📝','Exams Approval','Approve exams']];
-if(cur==='teacher_sec')return [['🏫','My Classes','My classes'],['📝','Set Exams','Submit to DOS'],['📚','Lesson Plans','Create'],['🗓️','Timetable','Create'],['✅','Mark Attendance','Mark class'],['✍️','Record Marks','Auto total']];
-if(cur==='teacher_theo')return [['🏫','My Classes','My classes'],['📝','Set Exams','Submit to DOS'],['📚','Lesson Plans','Create'],['🗓️','Timetable','Create'],['✅','Mark Attendance','Mark'],['✍️','Record Marks','Enter marks']];
+if(cur==='teacher_sec')return [['👑','My Class Teacher','My Class - Attendance + List'],['🏫','My Classes','My classes'],['📝','Set Exams','Submit to DOS'],['📚','Lesson Plans','Create'],['🗓️','Timetable','Create'],['✅','Mark Attendance','Mark class'],['✍️','Record Marks','Auto total']];
+if(cur==='teacher_theo')return [['👑','My Class Teacher','My Class - Attendance + List'],['🏫','My Classes','My classes'],['📝','Set Exams','Submit to DOS'],['📚','Lesson Plans','Create'],['🗓️','Timetable','Create'],['✅','Mark Attendance','Mark'],['✍️','Record Marks','Enter marks']];
 if(cur==='tahfiizu')return [['🧒','Students List','Tahfiizu students'],['✅','Attendance','Daily'],['📖','Quran Presentation','Hifzu, Darsu Sitta'],['📊','Tahfiizu Reports','Daily / Weekly'],['🏆','Hifzu Certificate','Generate']];
 if(cur==='other')return [['✅','My Attendance','Mark my own only'],['💬','Chat Headteacher','Chat']];
 if(cur==='parent')return [['🧒','My Child Profile','Only my children'],['💰','Fees Status','Only my children'],['✅','Attendance','Only my children'],['📊','Results','Only my children'],['🗓️','Timetable','Only my children'],['💬','Chat / Notices','From Admin'],['📖','Tahfiizu Progress','If Tahfiizu']];
@@ -385,13 +385,108 @@ if(['admin','bursar'].includes(cur) || cur==='parent'){
 });
 el.innerHTML=html||'No students yet.'}catch(e){el.innerText='Error: '+e.message}
 }
-async function loadPendingUsers(){let el=document.getElementById('pendingList');if(!el)return;try{let snap=await db.collection('users').where('approved','==',false).get();if(snap.empty){el.innerHTML='No pending users.';return}let html='';snap.forEach(doc=>{let u=doc.data();if(isDevEmail(u.email))return;html+=`<div style="border:1px solid #FF9800;border-radius:10px;padding:8px;margin:6px 0;background:#FFF3E0"><b>${u.name||u.email}</b><br>${u.email}<br>Requested: ${(u.roles||[]).join(', ')}<br><button class="btn btn-green" style="width:auto;padding:8px 12px" onclick="approveUser('${doc.id}')">Approve</button> <button class="btn btn-red" style="width:auto;padding:8px 12px" onclick="rejectUser('${doc.id}')">Reject</button></div>`});el.innerHTML=html||'No pending users.'}catch(e){el.innerHTML='Error: '+e.message}}
+async function loadPendingUsers(){
+  let el=document.getElementById('pendingList');if(!el)return;
+  try{
+    let snap=await db.collection('users').where('approved','==',false).get();
+    if(snap.empty){el.innerHTML='No pending users.';return}
+    let html='';
+    snap.forEach(doc=>{
+      let u=doc.data(); if(isDevEmail(u.email))return;
+      html+=`<div style="border:1px solid #FF9800;border-radius:10px;padding:10px;margin:8px 0;background:#FFF3E0">
+      <b>${u.name||u.email}</b><br>${u.email}<br>Requested: ${(u.roles||[]).join(', ')}<br><br>
+
+      <label style="font-size:12px;font-weight:800">✅ GIVE ROLES (1 to 3) — Tick:</label><br>
+      <label style="font-size:12px"><input type="checkbox" class="ap-role-${doc.id}" value="teacher_sec"> Secular Teacher</label><br>
+      <label style="font-size:12px"><input type="checkbox" class="ap-role-${doc.id}" value="teacher_theo"> Theology Teacher</label><br>
+      <label style="font-size:12px"><input type="checkbox" class="ap-role-${doc.id}" value="tahfiizu"> Tahfiizu Sheikh</label><br>
+      <label style="font-size:12px"><input type="checkbox" class="ap-role-${doc.id}" value="dos_sec"> D.O.S Secular</label><br>
+      <label style="font-size:12px"><input type="checkbox" class="ap-role-${doc.id}" value="dos_theo"> D.O.S Theology</label><br>
+      <label style="font-size:12px"><input type="checkbox" class="ap-role-${doc.id}" value="headteacher"> Headteacher</label><br>
+      <label style="font-size:12px"><input type="checkbox" class="ap-role-${doc.id}" value="bursar"> Bursar</label><br>
+      <label style="font-size:12px"><input type="checkbox" class="ap-role-${doc.id}" value="other"> Other Worker</label><br>
+
+      <label style="font-size:12px;font-weight:800">🏫 CLASS TEACHER? (In-charge of ONE class)</label>
+      <select id="ap-ct-${doc.id}" style="margin-top:4px">
+        <option value="">Not Class Teacher</option>
+        <option value="Baby">Baby</option><option value="Middle">Middle</option><option value="Top">Top</option>
+        <option value="P1">P1</option><option value="P2">P2</option><option value="P3">P3</option><option value="P4">P4</option>
+        <option value="P5">P5</option><option value="P6">P6</option><option value="P7">P7</option>
+      </select>
+
+      <label style="font-size:12px;font-weight:800">📚 SUBJECTS HE/SHE TEACHES (comma, e.g. English, Math, Science)</label>
+      <input id="ap-subj-${doc.id}" placeholder="English, Math, Science">
+
+      <label style="font-size:12px;font-weight:800">🏫 OTHER CLASSES HE/SHE TEACHES (where NOT class teacher, e.g. P1, P3)</label>
+      <input id="ap-other-${doc.id}" placeholder="P1, P3, P4">
+
+      <button class="btn btn-green" style="width:auto;padding:8px 12px" onclick="approveUserWithAssignment('${doc.id}')">Approve With Responsibility</button>
+      <button class="btn btn-red" style="width:auto;padding:8px 12px" onclick="rejectUser('${doc.id}')">Reject</button>
+      </div>`;
+    });
+    el.innerHTML=html||'No pending users.';
+  }catch(e){el.innerHTML='Error: '+e.message}
+}
+
+async function approveUserWithAssignment(uid){
+  try{
+    let doc=await db.collection('users').doc(uid).get();
+    let oldRoles=doc.data().roles||[];
+    // Get ticked roles 1-3
+    let checked=[...document.querySelectorAll('.ap-role-'+uid+':checked')].map(c=>c.value);
+    if(checked.length===0) checked=oldRoles;
+    if(checked.length>3){alert('Max 3 roles. You ticked '+checked.length);return}
+    if(checked.length===0){alert('Tick at least 1 role');return}
+    let ctClass=document.getElementById('ap-ct-'+uid)?.value||'';
+    let subjects=(document.getElementById('ap-subj-'+uid)?.value||'').split(',').map(s=>s.trim()).filter(s=>s);
+    let otherClasses=(document.getElementById('ap-other-'+uid)?.value||'').split(',').map(s=>s.trim()).filter(s=>s);
+    // Teaching assignment: Class Teacher class + Other classes
+    let teaching=[];
+    if(ctClass) teaching.push({cls:ctClass, subjects:subjects, isClassTeacher:true});
+    otherClasses.forEach(c=>{ teaching.push({cls:c, subjects:subjects, isClassTeacher:false}) });
+
+    await db.collection('users').doc(uid).update({
+      approved:true,
+      approvedRoles:checked,
+      roles:checked,
+      isClassTeacher: ctClass?true:false,
+      classTeacherOf: ctClass||'',
+      subjects:subjects,
+      teachingClasses:otherClasses,
+      teaching:teaching,
+      status:'approved'
+    });
+    alert('Approved!\nRoles: '+checked.join(', ')+'\nClass Teacher Of: '+(ctClass||'None')+'\nSubjects: '+subjects.join(', ')+'\nOther Classes: '+otherClasses.join(', '));
+    loadPendingUsers();
+  }catch(e){alert(e.message)}
+}
 async function approveUser(uid){try{let doc=await db.collection('users').doc(uid).get();let roles=doc.data().roles||[];let isAdmin=roles.includes('admin');let finalRoles=isAdmin?SCHOOL_ADMIN_ROLES:roles;await db.collection('users').doc(uid).update({approved:true,approvedRoles:finalRoles,isSchoolAdmin:isAdmin,status:'approved'});alert('Approved.');loadPendingUsers()}catch(e){alert(e.message)}}
 async function rejectUser(uid){if(!confirm('Reject this user?'))return;await db.collection('users').doc(uid).update({approved:false,approvedRoles:[],status:'rejected',roles:[]});alert('Rejected');loadPendingUsers()}
 async function makeSchoolAdmin(){let em=document.getElementById('mk-admin-email').value.trim().toLowerCase();if(!em){alert('Enter Email');return}let s=await db.collection('users').where('email','==',em).get();if(s.empty){alert('That person must Create Account first with that email.');return}s.forEach(async d=>{await db.collection('users').doc(d.id).update({approved:true,approvedRoles:SCHOOL_ADMIN_ROLES,roles:SCHOOL_ADMIN_ROLES,isSchoolAdmin:true,status:'approved'});alert('Made School Admin - 4 Roles: Admin, Headteacher, Bursar, Parent');listAllUsers()})}
 async function listAllUsers(){try{let s=await db.collection('users').get();let h='';s.forEach(d=>{let x=d.data();if(x._init)return;h+=`<div class="card"><b>${x.name}</b><br>${x.email}<br>Roles: ${(x.approvedRoles||[]).join(', ')}<br>${isDevEmail(x.email)?'DEVELOPER':x.isSchoolAdmin?'SCHOOL ADMIN':'User'}</div>`});document.getElementById('listBox').innerHTML=h||'No users yet.'}catch(e){document.getElementById('listBox').innerHTML='Error: '+e.message}}
 function openScreen(title){
 document.getElementById('detailTitle').innerText=title;let h=`<div class="card"><h3>${title}</h3>`;
+if(title==='My Class Teacher'){
+  h+=`<div id="ctBox">Loading your class...</div>`;
+  document.getElementById('detailBody').innerHTML=h+'</div>';show('scr-detail');
+  (async()=>{
+    let doc=await db.collection('users').doc(currentUid).get();
+    let u=doc.data()||{};
+    let box=document.getElementById('ctBox');
+    if(!u.isClassTeacher){
+      box.innerHTML=`<div class="card"><b>You are NOT a Class Teacher</b><br>Ask Admin to make you Class Teacher of a class.<br><br><b>Your Subjects:</b> ${(u.subjects||[]).join(', ')||'None'}<br><b>Other Classes You Teach:</b> ${(u.teachingClasses||[]).join(', ')||'None'}</div>`;
+      return;
+    }
+    let cls=u.classTeacherOf;
+    let snap=await db.collection('students').where('cls','==',cls).get();
+    let list=''; let count=0;
+    snap.forEach(d=>{let s=d.data();if(s._init)return;count++; list+=`<div class="card">🧒 ${s.name} - ID ${s.studentId||''} - Fees Bal ${s.fees-s.paid}</div>`});
+    box.innerHTML=`<div class="card" style="background:#FFF8E1;border:2px solid #F2C94C"><b>👑 YOU ARE CLASS TEACHER OF ${cls}</b><br>Subjects: ${(u.subjects||[]).join(', ')}<br>Total Students in ${cls}: ${count}<br>Other Classes You Teach: ${(u.teachingClasses||[]).join(', ')||'None'}</div>
+    <div style="margin-top:8px"><b>Students in ${cls} — Only You Make Their Attendance:</b></div>${list||'No students in '+cls+' yet.'}
+    <button class="btn btn-green" onclick="openScreen('Mark Attendance')">✅ Make Attendance for ${cls}</button>`;
+  })();
+  return;
+}
 if(title==='Developer Tools'){h+=`<p>Developer: ${DEV_NAME}</p><input id="mk-admin-email" placeholder="School Admin Email"><button class="btn btn-green" onclick="makeSchoolAdmin()">Make School Admin (4 Roles)</button><div id="listBox"></div>`;document.getElementById('detailBody').innerHTML=h+'</div>';show('scr-detail');listAllUsers();return}
 if(title==='Students Management'){
 h+=`<input id="st-name" placeholder="Student Full Name">
@@ -593,7 +688,6 @@ async function listFees(){let s=await db.collection('fees').orderBy('createdAt',
 async function listAttendance(){let s=await db.collection('attendance').where('date','==',new Date().toDateString()).get();let h='';s.forEach(d=>{let x=d.data();if(x._init)return;h+=`<div class="card">${x.name} - ${x.status}</div>`});document.getElementById('listBox').innerHTML=h||'No attendance today.'}
 async function listResults(){let s=await db.collection('results').orderBy('createdAt','desc').limit(20).get();let h='';s.forEach(d=>{let x=d.data();if(x._init)return;h+=`<div class="card">${x.name} - Eng ${x.eng} Math ${x.math} Sci ${x.sci} - Total ${x.total}/300</div>`});document.getElementById('listBox').innerHTML=h||'No results yet.'}
 async function listNotices(){let s=await db.collection('notices').orderBy('createdAt','desc').limit(20).get();let h='';s.forEach(d=>{let x=d.data();if(x._init)return;h+=`<div class="card">${x.text}<br><small>By ${x.by||''}</small></div>`});document.getElementById('listBox').innerHTML=h||'No notices yet.'}
-async function listMyChildren(){let s=await db.collection('students').where('parentId','==',currentUid).get();if(s.empty)s=await db.collection('students').where('parentName','==',userName).get();let h='';s.forEach(d=>{let x=d.data();if(x._init)return;h+=`<div class="card"><b>${x.name}</b> - ${x.cls}<br>Bal ${x.fees-x.paid}</div>`});document.getElementById('listBox').innerHTML=h||'No children found.'}
 async function listClasses(){let s=await db.collection('students').get();let map={};s.forEach(d=>{let c=d.data().cls||'No Class';if(d.data()._init)return;map[c]=(map[c]||0)+1});let h='';for(let k in map)h+=`<div class="card"><b>${k}</b> - ${map[k]} students</div>`;document.getElementById('listBox').innerHTML=h||'No classes yet.'}
 async function listTahfiizu(){let s=await db.collection('tahfiizu').orderBy('createdAt','desc').limit(20).get();let h='';s.forEach(d=>{let x=d.data();if(x._init)return;h+=`<div class="card">${x.name} - ${x.from} to ${x.to}<br>${x.note||''}</div>`});document.getElementById('listBox').innerHTML=h||'No presentation yet.'}
 async function listTimetable(){document.getElementById('listBox').innerHTML='No timetable yet.'}
