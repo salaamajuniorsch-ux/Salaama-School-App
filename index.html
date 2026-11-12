@@ -254,7 +254,7 @@ async function handleAfterAuth(email){
   if(d.approved!==true){selected=d.roles||[];approvedRoles=[];document.getElementById('waitRoles').innerText='You selected: '+(selected.join(', ')||'none')+' - Waiting Admin';show('scr-wait');renderRoleList();return;}
   approvedRoles=d.approvedRoles||d.roles||[];selected=[...approvedRoles];renderRoleList();show('scr-role');
 }
-try{if(typeof firebase!=='undefined'){firebase.initializeApp(firebaseConfig);auth=firebase.auth();db=firebase.firestore();firebaseReady=true;let s=document.getElementById('fbStatus');if(s){s.style.background='#E8F5E9';s.style.borderColor='#2E9E4F';}auth.onAuthStateChanged(async(u)=>{if(u&&!authHandled){authHandled=true;currentUid=u.uid;await handleAfterAuth(u.email)}else if(!u){authHandled=false}})}}catch(e){}
+try{if(typeof firebase!=='undefined'){firebase.initializeApp(firebaseConfig);auth=firebase.auth();db=firebase.firestore();firebaseReady=true;let s=document.getElementById('fbStatus');if(s){s.style.background='#E8F5E9';s.style.borderColor='#2E9E4F';s.innerText='Connected';}auth.onAuthStateChanged(async(u)=>{if(u&&!authHandled){authHandled=true;currentUid=u.uid;await handleAfterAuth(u.email)}else if(!u){authHandled=false}})}}catch(e){}
 async function firebaseSignup(){let email=document.getElementById('f-email').value.trim().toLowerCase(),pass=document.getElementById('f-pass').value,name=document.getElementById('f-name').value.trim();if(!name){setMsg('Enter Full Name first');return}if(!email||!pass){setMsg('Enter Email and Password');return}if(pass.length<6){setMsg('Password must be 6+');return}if(!firebaseReady){;return}setBusy(true,'signupBtn','');setMsg('Creating account...','#2E42C2');try{authHandled=false;await auth.createUserWithEmailAndPassword(email,pass);authHandled=true;await handleAfterAuth(email)}catch(e){if(e.code==='auth/email-already-in-use'){setMsg('Account exists. Logging you in...','#2E9E4F');try{authHandled=false;await auth.signInWithEmailAndPassword(email,pass);authHandled=true;await handleAfterAuth(email)}catch(e2){setMsg('Password wrong. Press Forgot Password.')}}else setMsg(e.message)}finally{setBusy(false,'signupBtn','Create Account')}}
 async function firebaseLogin(){let email=document.getElementById('f-email').value.trim().toLowerCase(),pass=document.getElementById('f-pass').value;if(!email||!pass){setMsg('Enter Email and Password');return}if(!firebaseReady){;return}authHandled=false;setBusy(true,'loginBtn','');setMsg('Logging in... Please wait','#2E42C2');try{if(auth.currentUser&&auth.currentUser.email&&auth.currentUser.email.toLowerCase()===email){authHandled=true;await handleAfterAuth(email);return}await auth.signInWithEmailAndPassword(email,pass);authHandled=true;await handleAfterAuth(email)}catch(e){if(e.code==='auth/invalid-credential'||e.code==='auth/wrong-password'||e.code==='auth/user-not-found')setMsg('Wrong password OR no account. If new, press Create. If old, press Forgot Password.');else if(e.code==='auth/too-many-requests')setMsg('Too many tries. Wait 1 minute.');else setMsg(e.message)}finally{setBusy(false,'loginBtn','Login')}}
 async function forgotPassword(){let email=document.getElementById('f-email').value.trim().toLowerCase();if(!email){setMsg('Enter Email first');return}try{await auth.sendPasswordResetEmail(email);setMsg('Reset link sent to '+email,'#2E9E4F');alert('Reset link sent. Check Gmail / Spam.')}catch(e){setMsg(e.message)}}
@@ -342,7 +342,7 @@ let realPresent=0;
 aSnap.forEach(d=>{ if(!d.data()._init) realPresent++; });
 
 // === FIX ALL ROLES ===
-let isFinance = ['admin','bursar'].includes(cur) || isDeveloper;
+let isFinance = ['admin','bursar'].includes(cur);
 let isTeacherLike = ['teacher_sec','teacher_theo','tahfiizu','other'].includes(cur);
 
 // Hide / Show Live Data BOX
@@ -371,13 +371,13 @@ await loadLiveStudents();
 }catch(e){document.getElementById('liveData').innerText='Error: '+e.message}
 }
 async function loadLiveStudents(){
-let el=document.getElementById('liveData');if(!firebaseReady){el.innerText='Firebase not connected';return}
+let el=document.getElementById('liveData');if(!firebaseReady){el.innerText='Not Connected';return}
 try{
 if(['teacher_sec','teacher_theo','tahfiizu','other'].includes(cur)){ el.innerHTML=''; return; }
 let snap;if(cur==='parent'&&currentUid)snap=await db.collection('students').where('parentId','==',currentUid).get();else snap=await db.collection('students').limit(20).get();
 if(snap.empty){el.innerHTML='No students yet.';return}
 let html='';snap.forEach(d=>{let s=d.data();if(s._init)return;
-if(['admin','bursar'].includes(cur) || isDeveloper || cur==='parent'){
+if(['admin','bursar'].includes(cur) || cur==='parent'){
   html+=`🧒 ${s.name||'-'} - ${s.cls||''} - Fees ${s.fees||''} - Paid ${s.paid||''} - Balance ${(s.fees||0)-(s.paid||0)}<br>`;
 } else if(['dos_sec','dos_theo','headteacher'].includes(cur)){
   html+=`🧒 ${s.name||'-'} - ${s.cls||''}<br>`;
