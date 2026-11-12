@@ -543,7 +543,6 @@ function cleanPhone(p){
 }
 // === SETTINGS - PERMISSIONS + REQUIREMENTS ===
 let appSettings={allowDeleteStudents:false, allowDeleteTeachers:false, requirements:[]};
-let appSettings={allowDeleteStudents:false, allowDeleteTeachers:false, requirements:[]};
 async function loadSettings(){
   try{
     let d=await db.collection('settings').doc('main').get();
