@@ -115,7 +115,7 @@ input,select,textarea{width:100%;padding:11px;border:1px solid #ddd;border-radiu
     <div class="splash-loading">Loading...</div>
   </div>
 </div> 
-<script>setTimeout(function(){var s=document.getElementById('splash');if(s)s.style.display='none';},5000);</script>
+<script>setTimeout(function(){var s=document.getElementById('splash');if(s)s.style.display='none';},4600);</script>
 <div id="drawerOverlay" onclick="closeDrawer()"></div>
 <div id="drawer">
 <div class="drawerHead" onclick="secretTap()"><img src="logo.png"><div><b id="drawerName">User</b><br><span id="drawerRole" style="font-size:11px;color:#FFE9A8">Role</span><br><span style="font-size:10px;opacity:.9">SALAAMA MUSLIM JUNIOR SCHOOL</span></div><button onclick="closeDrawer()" style="margin-left:auto;background:rgba(255,255,255,.2);border:none;color:#fff;width:30px;height:30px;border-radius:50%;font-weight:bold">X</button></div>
@@ -393,7 +393,27 @@ async function listAllUsers(){try{let s=await db.collection('users').get();let h
 function openScreen(title){
 document.getElementById('detailTitle').innerText=title;let h=`<div class="card"><h3>${title}</h3>`;
 if(title==='Developer Tools'){h+=`<p>Developer: ${DEV_NAME}</p><input id="mk-admin-email" placeholder="School Admin Email"><button class="btn btn-green" onclick="makeSchoolAdmin()">Make School Admin (4 Roles)</button><div id="listBox"></div>`;document.getElementById('detailBody').innerHTML=h+'</div>';show('scr-detail');listAllUsers();return}
-if(title==='Students Management'){h+=`<input id="st-name" placeholder="Student Full Name"><input id="st-class" placeholder="Class e.g. P2"><input id="st-parent" placeholder="Parent Name"><input id="st-fees" type="number" placeholder="Fees Amount"><input id="st-paid" type="number" placeholder="Paid Amount"><button class="btn btn-green" onclick="saveStudent()">Register Student</button><div id="listBox"></div>`;document.getElementById('detailBody').innerHTML=h+'</div>';show('scr-detail');listStudents();return}
+if(title==='Students Management'){
+h+=`<input id="st-name" placeholder="Student Full Name">
+<input id="st-class" placeholder="Class e.g. P2">
+<div style="background:#FFF8E1;border:1px solid #F2C94C;border-radius:10px;padding:10px;margin-top:8px">
+<b style="font-size:13px">👨 Father / Guardian 1</b>
+<input id="st-father" placeholder="Father Full Name">
+<input id="st-father-phone" placeholder="Father Phone e.g. 0709157254" type="tel">
+</div>
+<div style="background:#E8F5E9;border:1px solid #2E9E4F;border-radius:10px;padding:10px;margin-top:8px">
+<b style="font-size:13px">👩 Mother / Guardian 2</b>
+<input id="st-mother" placeholder="Mother Full Name">
+<input id="st-mother-phone" placeholder="Mother Phone e.g. 0785831666" type="tel">
+</div>
+<input id="st-fees" type="number" placeholder="Fees Amount">
+<input id="st-paid" type="number" placeholder="Paid Amount">
+<div style="background:#EEF1FF;padding:10px;border-radius:10px;margin-top:8px;font-size:12px"><b>Student ID will be auto-generated, e.g. SAL-2026-001</b><br>Give this ID to BOTH parents. They will enter it to see the child.</div>
+<button class="btn btn-green" onclick="saveStudent()">Register Student</button>
+<div style="margin-top:10px"><b>🔗 Link Parent By Student ID</b><input id="link-student-id" placeholder="Enter Student ID e.g. SAL-2026-001"><button class="btn" onclick="linkParentById()">Link My Child</button></div>
+<div style="margin-top:10px"><b>💬 Send Message to Parent</b><input id="msg-parent-phone" placeholder="Parent Phone e.g. 0709157254"><textarea id="msg-text" placeholder="Write message to parent..."></textarea><button class="btn btn-green" onclick="sendParentMessage()">Send In-App + WhatsApp + SMS</button></div>
+<div id="listBox"></div>`;
+document.getElementById('detailBody').innerHTML=h+'</div>';show('scr-detail');listStudents();return}
 if(title==='Staff Management'||title==='Teacher Management'){h+=`<div class="card"><h3>Pending Approvals</h3><div id="pendingList">Loading...</div><button class="btn btn-green" onclick="loadPendingUsers()">Refresh Pending</button></div><input id="sf-name" placeholder="Staff Full Name"><input id="sf-role" placeholder="Role"><input id="sf-salary" type="number" placeholder="Salary"><button class="btn btn-green" onclick="saveStaff()">Save Staff</button><div id="listBox"></div>`;document.getElementById('detailBody').innerHTML=h+'</div>';show('scr-detail');listStaff();loadPendingUsers();return}
 if(title==='Fees'||title==='Collect Fees'||title==='Generate Receipt'||title==='Students & Fee Status'){h+=`<select id="fee-student"><option>Loading students...</option></select><div id="fee-balance" style="font-size:12px;color:#2E42C2;font-weight:bold;margin-top:6px"></div><input id="fee-amount" type="number" placeholder="Amount Paid"><button class="btn btn-green" onclick="saveFee()">Record Payment</button><div id="listBox"></div>`;document.getElementById('detailBody').innerHTML=h+'</div>';show('scr-detail');listFees();fillStudentSelect('fee-student');return}
 if(title==='Attendance'||title==='Secular Attendance'||title==='Theology Attendance'||title==='Mark Attendance'||title==='My Attendance'){h+=`<select id="at-name"><option>Loading students...</option></select><select id="at-status"><option>Present</option><option>Absent</option></select><button class="btn btn-green" onclick="saveAttendance()">Save Attendance</button><div id="listBox"></div>`;document.getElementById('detailBody').innerHTML=h+'</div>';show('scr-detail');listAttendance();fillStudentSelect('at-name');return}
@@ -415,7 +435,99 @@ else if(title==='Tahfiizu Reports'){h+=`<div id="listBox"></div>`;document.getEl
 else{h+=`<textarea placeholder="Write here..."></textarea><button class="btn" onclick="alert('Saved')">Save</button>`}
 h+=`</div>`;document.getElementById('detailBody').innerHTML=h;show('scr-detail');
 }
-async function saveStudent(){let n=document.getElementById('st-name').value.trim();if(!n){alert('Enter Name');return}await db.collection('students').add({name:n,cls:document.getElementById('st-class').value,parentName:document.getElementById('st-parent').value,fees:Number(document.getElementById('st-fees').value||0),paid:Number(document.getElementById('st-paid').value||0),parentId:currentUid,createdAt:new Date()});alert('Student Saved');listStudents();loadDashboard()}
+// === STUDENT ID GENERATOR ===
+function makeStudentId(){
+  let n = Math.floor(100 + Math.random()*900);
+  return 'SAL-' + new Date().getFullYear() + '-' + n;
+}
+function cleanPhone(p){
+  p=(p||'').replace(/[^0-9+]/g,'');
+  if(p.startsWith('0')) p='256'+p.slice(1);
+  if(p.startsWith('+')) p=p.slice(1);
+  return p;
+}
+async function saveStudent(){
+  let n=document.getElementById('st-name').value.trim();
+  if(!n){alert('Enter Student Name');return}
+  let sid = makeStudentId();
+  let father=document.getElementById('st-father')?.value.trim()||'';
+  let fPhone=document.getElementById('st-father-phone')?.value.trim()||'';
+  let mother=document.getElementById('st-mother')?.value.trim()||'';
+  let mPhone=document.getElementById('st-mother-phone')?.value.trim()||'';
+  await db.collection('students').add({
+    name:n,
+    cls:document.getElementById('st-class').value,
+    parentName:father||mother,
+    fatherName:father, fatherPhone:fPhone,
+    motherName:mother, motherPhone:mPhone,
+    parentPhones:[fPhone,mPhone].filter(x=>x),
+    studentId:sid,
+    fees:Number(document.getElementById('st-fees').value||0),
+    paid:Number(document.getElementById('st-paid').value||0),
+    parentIds:[], // will fill when parents link with ID
+    linkedParentUids:[],
+    createdAt:new Date()
+  });
+  alert('Student Saved!\nStudent ID: '+sid+'\n\nGive this ID to Father: '+father+' ('+fPhone+') and Mother: '+mother+' ('+mPhone+')\nThey both enter same ID to see child.');
+  listStudents(); loadDashboard();
+}
+
+// === PARENT LINK BY STUDENT ID - BOTH PARENTS SEE SAME CHILD ===
+async function linkParentById(){
+  let sid=(document.getElementById('link-student-id')?.value||'').trim().toUpperCase();
+  if(!sid){alert('Enter Student ID');return}
+  let s=await db.collection('students').where('studentId','==',sid).get();
+  if(s.empty){alert('No student found with ID '+sid);return}
+  let docId=''; let data=null;
+  s.forEach(d=>{docId=d.id; data=d.data()});
+  // Add this parent UID to student
+  await db.collection('students').doc(docId).update({
+    parentIds: firebase.firestore.FieldValue.arrayUnion(currentUid),
+    linkedParentUids: firebase.firestore.FieldValue.arrayUnion(currentUid)
+  });
+  // Also save ID in user doc
+  if(currentUid) await db.collection('users').doc(currentUid).update({
+    parentStudentIds: firebase.firestore.FieldValue.arrayUnion(sid)
+  }).catch(()=>{});
+  alert('Linked! You will now see: '+data.name+' - '+data.cls+' - ID '+sid);
+  listMyChildren(); loadDashboard();
+}
+
+// === SEND MESSAGE: IN-APP + WHATSAPP + SMS ===
+async function sendParentMessage(){
+  let phone=(document.getElementById('msg-parent-phone')?.value||'').trim();
+  let text=(document.getElementById('msg-text')?.value||'').trim();
+  if(!phone||!text){alert('Enter Parent Phone and Message');return}
+  let clean=cleanPhone(phone);
+  // 1. IN-APP - Save to notices so parent sees it in Parent Dashboard even without WhatsApp
+  await db.collection('notices').add({text:text, by:userName+' ('+cur+')', toPhone:phone, createdAt:new Date(), type:'parent-message'});
+  // 2. WHATSAPP - Opens WhatsApp
+  let wa='https://wa.me/'+clean+'?text='+encodeURIComponent('SALAAMA MUSLIM JUNIOR SCHOOL: '+text);
+  // 3. SMS - Opens phone SMS app, works for non-smartphone (they receive as normal SMS)
+  let sms='sms:+'+clean+'?body='+encodeURIComponent('SALAAMA: '+text);
+  if(confirm('Message saved In-App.\n\nPress OK to send via WhatsApp, or Cancel to send via SMS?')){
+    window.open(wa,'_blank');
+  } else {
+    window.location.href=sms;
+  }
+  alert('Message saved in Parent Dashboard. WhatsApp/SMS opened.');
+}
+
+// === PARENT SEES CHILDREN BY ID, NOT JUST BY parentId ===
+async function listMyChildren(){
+  let s=null;
+  // Try by linked UID first
+  s=await db.collection('students').where('parentIds','array-contains',currentUid).get();
+  let html='';
+  let found=false;
+  s.forEach(d=>{let x=d.data();if(x._init)return;found=true;html+=`<div class="card"><b>${x.name}</b> - ${x.cls} - ID: ${x.studentId||''}<br>Father: ${x.fatherName||''} ${x.fatherPhone||''}<br>Mother: ${x.motherName||''} ${x.motherPhone||''}<br>Bal ${x.fees-x.paid}</div>`});
+  // Fallback: old method by parentId / parentName
+  if(!found){
+    let s2=await db.collection('students').where('parentId','==',currentUid).get();
+    s2.forEach(d=>{let x=d.data();if(x._init)return;html+=`<div class="card"><b>${x.name}</b> - ${x.cls}<br>Bal ${x.fees-x.paid}</div>`});
+  }
+  document.getElementById('listBox').innerHTML=html||'No children found. Enter Student ID above to link.';
+}
 async function saveStaff(){let n=document.getElementById('sf-name').value.trim();if(!n){alert('Enter Name');return}await db.collection('staff').add({name:n,role:document.getElementById('sf-role').value,salary:Number(document.getElementById('sf-salary').value||0),createdAt:new Date()});alert('Staff Saved');listStaff()}
 async function fillStudentSelect(selectId){
   let sel=document.getElementById(selectId);
@@ -465,7 +577,17 @@ async function saveFee(){
 async function saveResult(){let n=document.getElementById('rs-name').value.trim();if(!n){alert('Enter Name');return}let e=Number(document.getElementById('rs-eng').value||0),m=Number(document.getElementById('rs-math').value||0),s=Number(document.getElementById('rs-sci').value||0);await db.collection('results').add({name:n,eng:e,math:m,sci:s,total:e+m+s,createdAt:new Date()});alert('Result Saved - Total '+(e+m+s));listResults()}
 async function saveNotice(){let t=document.getElementById('nt-text').value.trim();if(!t){alert('Write Notice');return}await db.collection('notices').add({text:t,by:userName,createdAt:new Date()});alert('Notice Sent');listNotices()}
 async function saveTahfiizu(){let n=document.getElementById('tf-name').value.trim();if(!n){alert('Enter Name');return}await db.collection('tahfiizu').add({name:n,from:document.getElementById('tf-from').value,to:document.getElementById('tf-to').value,note:document.getElementById('tf-note').value,date:new Date().toDateString(),createdAt:new Date()});alert('Saved');listTahfiizu()}
-async function listStudents(){let s=await db.collection('students').get();let h='';s.forEach(d=>{let x=d.data();if(x._init)return;h+=`<div class="card"><b>${x.name}</b> - ${x.cls||''}<br>Fees ${x.fees} | Paid ${x.paid} | Bal ${x.fees-x.paid}</div>`});document.getElementById('listBox').innerHTML=h||'No students yet.'}
+async function listStudents(){
+  let s=await db.collection('students').get();let h='';
+  s.forEach(d=>{let x=d.data();if(x._init)return;
+  h+=`<div class="card"><b>${x.name}</b> - ${x.cls||''} - <b style="color:#2E42C2">ID: ${x.studentId||'No ID - Re-register'}</b><br>👨 ${x.fatherName||x.parentName||''} - ${x.fatherPhone||''}<br>👩 ${x.motherName||''} - ${x.motherPhone||''}<br>Fees ${x.fees} | Paid ${x.paid} | Bal ${x.fees-x.paid}<br><button class="btn btn-green" style="width:auto;padding:6px 10px;margin-top:6px" onclick="sendWhatsAppTo('${x.fatherPhone||''}','${x.name}')">WhatsApp Father</button> <button class="btn" style="width:auto;padding:6px 10px" onclick="sendWhatsAppTo('${x.motherPhone||''}','${x.name}')">WhatsApp Mother</button></div>`});
+  document.getElementById('listBox').innerHTML=h||'No students yet.';
+}
+function sendWhatsAppTo(phone, name){
+  if(!phone){alert('No phone for this parent');return}
+  let clean=cleanPhone(phone);
+  window.open('https://wa.me/'+clean+'?text='+encodeURIComponent('Assalamu Alaikum, this is SALAAMA about '+name),'_blank');
+}
 async function listStaff(){let s=await db.collection('staff').get();let h='';s.forEach(d=>{let x=d.data();if(x._init)return;h+=`<div class="card"><b>${x.name}</b> - ${x.role||''} - Salary ${x.salary||0}</div>`});document.getElementById('listBox').innerHTML=h||'No staff yet.'}
 async function listFees(){let s=await db.collection('fees').orderBy('createdAt','desc').limit(20).get();let h='';s.forEach(d=>{let x=d.data();if(x._init)return;h+=`<div class="card">${x.student} - Paid ${x.amount} - ${x.date}</div>`});document.getElementById('listBox').innerHTML=h||'No payments yet.'}
 async function listAttendance(){let s=await db.collection('attendance').where('date','==',new Date().toDateString()).get();let h='';s.forEach(d=>{let x=d.data();if(x._init)return;h+=`<div class="card">${x.name} - ${x.status}</div>`});document.getElementById('listBox').innerHTML=h||'No attendance today.'}
@@ -496,7 +618,7 @@ else if(l.includes('tahfiizu')||l.includes('quran')||l.includes('hifzu')){let s=
 else if(l.includes('my child')||l.includes('my children')){let s=await db.collection('students').where('parentId','==',currentUid).get();if(s.empty)ans='No children found for you.';else{ans='Your children: ';s.forEach(d=>{let x=d.data();if(!x._init)ans+=`${x.name} Bal ${x.fees-x.paid}, `})}}
 else ans='Ask me: Balance of [name]? How many students? Attendance today? Top student? Fees collected? Latest notice? Tahfiizu? My children?';
 }catch(e){ans='Error: '+e.message}b.innerHTML+=`<div class="msg">${ans}</div>`;b.scrollTop=b.scrollHeight}
-setTimeout(()=>{try{document.getElementById('splash').style.display='none'}catch(e){}if(!authHandled){if(phoneLockEnabled()){let em='';try{em=localStorage.getItem('salaama_saved_email')||''}catch(e){}if(em)document.getElementById('unlockEmail').innerText=em;document.getElementById('unlockName').innerText=(localStorage.getItem('salaama_saved_name')||'User');show('scr-unlock')}else show('scr-login')}},50);
+setTimeout(()=>{try{document.getElementById('splash').style.display='none'}catch(e){}if(!authHandled){if(phoneLockEnabled()){let em='';try{em=localStorage.getItem('salaama_saved_email')||''}catch(e){}if(em)document.getElementById('unlockEmail').innerText=em;document.getElementById('unlockName').innerText=(localStorage.getItem('salaama_saved_name')||'User');show('scr-unlock')}else show('scr-login')}},4600);
 let deferredPrompt=null;window.addEventListener('beforeinstallprompt',(e)=>{e.preventDefault();deferredPrompt=e;document.getElementById('installBtn').style.display='block'});
 async function installApp(){if(deferredPrompt){deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;document.getElementById('installBtn').style.display='none'}else{alert('Android: Chrome > 3 dots > Add to Home screen')}}
 </script></body></html>
