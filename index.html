@@ -616,7 +616,6 @@ async function saveStudent(){
     linkedParentUids:[],
     createdAt:new Date()
   });
-    fees:Number(document.getElementById('st-fees').value||0),
   alert('Student Saved!\nStudent ID: '+sid+'\n\nGive this ID to Father: '+father+' ('+fPhone+') and Mother: '+mother+' ('+mPhone+')\nThey both enter same ID to see child.');
   listStudents(); loadDashboard();
 }
