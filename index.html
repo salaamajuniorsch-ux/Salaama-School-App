@@ -118,13 +118,13 @@ input,select,textarea{width:100%;padding:11px;border:1px solid #ddd;border-radiu
 <script>setTimeout(function(){var s=document.getElementById('splash');if(s)s.style.display='none';},4600);</script>
 <div id="drawerOverlay" onclick="closeDrawer()"></div>
 <div id="drawer">
-<div class="drawerHead"><img src="logo.png"><div><b id="drawerName">User</b><br><span id="drawerRole" style="font-size:11px;color:#FFE9A8">Role</span><br><span style="font-size:10px;opacity:.9">SALAAMA MUSLIM JUNIOR SCHOOL</span></div><button onclick="closeDrawer()" style="margin-left:auto;background:rgba(255,255,255,.2);border:none;color:#fff;width:30px;height:30px;border-radius:50%;font-weight:bold">X</button></div>
+<div class="drawerHead" onclick="secretTap()"><img src="logo.png"><div><b id="drawerName">User</b><br><span id="drawerRole" style="font-size:11px;color:#FFE9A8">Role</span><br><span style="font-size:10px;opacity:.9">SALAAMA MUSLIM JUNIOR SCHOOL</span></div><button onclick="closeDrawer()" style="margin-left:auto;background:rgba(255,255,255,.2);border:none;color:#fff;width:30px;height:30px;border-radius:50%;font-weight:bold">X</button></div>
 <div class="drawerLabel">CURRENT DASHBOARD - <span id="drawerRole2">Admin</span></div>
 <div id="drawerItems"></div>
 <div class="drawerLabel">ROLES</div>
 <div class="drawerItem" onclick="closeDrawer();goRoles()"><span class="dIc">⇄</span><span>Back to Roles List<small>To enter another role, go to Roles List</small></span></div>
 <div class="drawerLabel">APP DEVELOPER</div>
-<div class="devCard" onclick="closeDrawer();openDevFlyer()">
+<div class="devCard" id="devCardHidden" style="display:none" onclick="closeDrawer();openDevFlyer()">
 <div style="font-size:11px;font-weight:800;color:#B77900;letter-spacing:1px">APP DEVELOPER • TAP TO VIEW</div>
 <b style="font-size:15px">Jemba AbdulHamiid</b>
 <p style="font-size:12px;margin:4px 0">We Build Websites, Software & Mobile Apps</p>
@@ -260,7 +260,17 @@ async function firebaseLogin(){let email=document.getElementById('f-email').valu
 async function forgotPassword(){let email=document.getElementById('f-email').value.trim().toLowerCase();if(!email){setMsg('Enter Email first');return}try{await auth.sendPasswordResetEmail(email);setMsg('Reset link sent to '+email,'#2E9E4F');alert('Reset link sent. Check Gmail / Spam.')}catch(e){setMsg(e.message)}}
 async function checkApproval(){if(!currentUid&&auth.currentUser)currentUid=auth.currentUser.uid;if(!currentUid){show('scr-login');return}let doc=await db.collection('users').doc(currentUid).get();let d=doc.data();if(d.approved===true){approvedRoles=d.approvedRoles||d.roles||[];selected=[...approvedRoles];alert('Approved.');renderRoleList();show('scr-role')}else alert('Still pending. Admin has not approved yet.')}
 function openDrawer(){let R=ROLES.find(x=>x.id===cur);document.getElementById('drawerName').innerText=userName;document.getElementById('drawerRole').innerText=R?R.name:cur;document.getElementById('drawerRole2').innerText=R?R.name:cur;let items=getDash();document.getElementById('drawerItems').innerHTML=items.map(i=>`<div class="drawerItem" onclick="closeDrawer();openScreen('${i[1]}')"><span class="dIc">${i[0]}</span><span>${i[1]}<small>${i[2]}</small></span><span style="margin-left:auto;color:#999">›</span></div>`).join('');document.getElementById('drawer').classList.add('open');document.getElementById('drawerOverlay').classList.add('open')}
-function closeDrawer(){document.getElementById('drawer').classList.remove('open');document.getElementById('drawerOverlay').classList.remove('open')}
+let secretCount=0,secretTimer=null;
+function secretTap(){
+  secretCount++;
+  clearTimeout(secretTimer);
+  secretTimer=setTimeout(()=>{secretCount=0},2000);
+  if(secretCount>=5){
+    secretCount=0;
+    if(!isDeveloper){ alert('Access Denied'); return; }
+    openScreen('Developer Tools');
+  }
+}function closeDrawer(){document.getElementById('drawer').classList.remove('open');document.getElementById('drawerOverlay').classList.remove('open')}
 function openDevFlyer(){document.getElementById('devFlyer').classList.add('open');window.scrollTo(0,0)}
 function closeDevFlyer(){document.getElementById('devFlyer').classList.remove('open')}
 const ROLES=[
@@ -276,7 +286,7 @@ const ROLES=[
 {id:'parent',name:'Parent',icon:'👨‍👩‍👧',desc:'Views ONLY own child.',func:'Child • Fees • Attendance • Results'}
 ];
 function getDash(){
-if(cur==='admin')return [['👥','Staff Management','Approve users, salary'],['🧒','Students Management','Register, fees'],['🏫','Classes','All classes'],['✅','Attendance','Students + Teachers'],['📄','Documents','Receipts, reports'],['📖','Tahfiizu','Hifzu, Darsu Sitta'],['💰','Finance','Income, balance, expense'],['🎬','Media','Videos & Audios'],['⚙️','Settings','Term, fees'],['🛠','Developer Tools','Approve Admin']];
+if(cur==='admin')return [['👥','Staff Management','Approve users, salary'],['🧒','Students Management','Register, fees'],['🏫','Classes','All classes'],['✅','Attendance','Students + Teachers'],['📄','Documents','Receipts, reports'],['📖','Tahfiizu','Hifzu, Darsu Sitta'],['💰','Finance','Income, balance, expense'],['🎬','Media','Videos & Audios'],['⚙️','Settings','Term, fees']];
 if(cur==='bursar')return [['💰','Collect Fees','Collect & record'],['🧾','Generate Receipt','Receipt'],['🧒','Students & Fee Status','Who paid / balance'],['📊','Reports','Daily / Monthly'],['📈','Cashflow','Income / Expense'],['📄','Documents','Saved receipts']];
 if(cur==='headteacher')return [['👨‍🏫','Teacher Management','List & responsibilities'],['🏫','Classes','List + learners'],['📝','Exams Approval','Approve exams'],['✅','Attendance','Children + Teachers'],['💰','Fees Status','View fees'],['🗓️','Timetable','From DOSs']];
 if(cur==='dos_sec')return [['✅','Secular Attendance','Attendance'],['📈','Children Performance','Marks'],['👨‍🏫','Teachers Performance','Give marks'],['📚','Secular Curriculum','Topics, schemes'],['📝','Exams Approval','Approve exams']];
