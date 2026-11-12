@@ -115,7 +115,7 @@ input,select,textarea{width:100%;padding:11px;border:1px solid #ddd;border-radiu
     <div class="splash-loading">Loading...</div>
   </div>
 </div> 
-<script>setTimeout(function(){var s=document.getElementById('splash');if(s)s.style.display='none';},500);</script>
+<script>setTimeout(function(){var s=document.getElementById('splash');if(s)s.style.display='none';},5000);</script>
 <div id="drawerOverlay" onclick="closeDrawer()"></div>
 <div id="drawer">
 <div class="drawerHead" onclick="secretTap()"><img src="logo.png"><div><b id="drawerName">User</b><br><span id="drawerRole" style="font-size:11px;color:#FFE9A8">Role</span><br><span style="font-size:10px;opacity:.9">SALAAMA MUSLIM JUNIOR SCHOOL</span></div><button onclick="closeDrawer()" style="margin-left:auto;background:rgba(255,255,255,.2);border:none;color:#fff;width:30px;height:30px;border-radius:50%;font-weight:bold">X</button></div>
@@ -496,7 +496,7 @@ else if(l.includes('tahfiizu')||l.includes('quran')||l.includes('hifzu')){let s=
 else if(l.includes('my child')||l.includes('my children')){let s=await db.collection('students').where('parentId','==',currentUid).get();if(s.empty)ans='No children found for you.';else{ans='Your children: ';s.forEach(d=>{let x=d.data();if(!x._init)ans+=`${x.name} Bal ${x.fees-x.paid}, `})}}
 else ans='Ask me: Balance of [name]? How many students? Attendance today? Top student? Fees collected? Latest notice? Tahfiizu? My children?';
 }catch(e){ans='Error: '+e.message}b.innerHTML+=`<div class="msg">${ans}</div>`;b.scrollTop=b.scrollHeight}
-setTimeout(()=>{try{document.getElementById('splash').style.display='none'}catch(e){}if(!authHandled){if(phoneLockEnabled()){let em='';try{em=localStorage.getItem('salaama_saved_email')||''}catch(e){}if(em)document.getElementById('unlockEmail').innerText=em;document.getElementById('unlockName').innerText=(localStorage.getItem('salaama_saved_name')||'User');show('scr-unlock')}else show('scr-login')}},4600);
+setTimeout(()=>{try{document.getElementById('splash').style.display='none'}catch(e){}if(!authHandled){if(phoneLockEnabled()){let em='';try{em=localStorage.getItem('salaama_saved_email')||''}catch(e){}if(em)document.getElementById('unlockEmail').innerText=em;document.getElementById('unlockName').innerText=(localStorage.getItem('salaama_saved_name')||'User');show('scr-unlock')}else show('scr-login')}},460);
 let deferredPrompt=null;window.addEventListener('beforeinstallprompt',(e)=>{e.preventDefault();deferredPrompt=e;document.getElementById('installBtn').style.display='block'});
 async function installApp(){if(deferredPrompt){deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;document.getElementById('installBtn').style.display='none'}else{alert('Android: Chrome > 3 dots > Add to Home screen')}}
 </script></body></html>
