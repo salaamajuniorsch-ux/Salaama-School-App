@@ -35,12 +35,6 @@ input,select,textarea{width:100%;padding:11px;border:1px solid #ddd;border-radiu
 .badge-green{background:#2E9E4F;color:#fff;padding:3px 8px;border-radius:10px;font-size:11px;font-weight:bold}
 .badge-orange{background:#FF9800;color:#fff;padding:3px 8px;border-radius:10px;font-size:11px;font-weight:bold}
 .badge-grey{background:#eee;color:#666;padding:3px 8px;border-radius:10px;font-size:11px}
-#splash{position:fixed;inset:0;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;animation:splashHide .5s ease 2.5s forwards}
-@keyframes splashHide{to{opacity:0;visibility:hidden;display:none}}
-#splash img{width:170px;animation:pulse 1.2s infinite}
-@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
-.loader{width:190px;height:7px;background:#eee;border-radius:20px;overflow:hidden;margin-top:10px}.loader div{height:100%;width:50%;background:linear-gradient(90deg,var(--blue),var(--gold),var(--green));animation:load 1.1s infinite}
-@keyframes load{0%{margin-left:-50%}100%{margin-left:100%}}
 #aiBtn{position:fixed;right:14px;bottom:16px;width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,#2E42C2,#6A3DFF);color:#fff;border:3px solid var(--gold);z-index:100;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1}
 #aiBtn b{font-size:16px}#aiBtn span{font-size:7px;font-weight:800;letter-spacing:1px}
 #aiBox{position:fixed;right:10px;bottom:78px;width:92%;max-width:420px;background:#fff;border-radius:16px;box-shadow:0 10px 30px #0003;z-index:101;overflow:hidden}
@@ -121,8 +115,7 @@ input,select,textarea{width:100%;padding:11px;border:1px solid #ddd;border-radiu
     <div class="splash-loading">Loading...</div>
   </div>
 </div> 
-<script>setTimeout(function(){var s=document.getElementById('splash');if(s)s.style.display='none';},2600);</script>
-
+<script>setTimeout(function(){var s=document.getElementById('splash');if(s)s.style.display='none';},4600);</script>
 <div id="drawerOverlay" onclick="closeDrawer()"></div>
 <div id="drawer">
 <div class="drawerHead"><img src="logo.png"><div><b id="drawerName">User</b><br><span id="drawerRole" style="font-size:11px;color:#FFE9A8">Role</span><br><span style="font-size:10px;opacity:.9">SALAAMA MUSLIM JUNIOR SCHOOL</span></div><button onclick="closeDrawer()" style="margin-left:auto;background:rgba(255,255,255,.2);border:none;color:#fff;width:30px;height:30px;border-radius:50%;font-weight:bold">X</button></div>
@@ -477,7 +470,7 @@ else if(l.includes('tahfiizu')||l.includes('quran')||l.includes('hifzu')){let s=
 else if(l.includes('my child')||l.includes('my children')){let s=await db.collection('students').where('parentId','==',currentUid).get();if(s.empty)ans='No children found for you.';else{ans='Your children: ';s.forEach(d=>{let x=d.data();if(!x._init)ans+=`${x.name} Bal ${x.fees-x.paid}, `})}}
 else ans='Ask me: Balance of [name]? How many students? Attendance today? Top student? Fees collected? Latest notice? Tahfiizu? My children?';
 }catch(e){ans='Error: '+e.message}b.innerHTML+=`<div class="msg">${ans}</div>`;b.scrollTop=b.scrollHeight}
-setTimeout(()=>{try{document.getElementById('splash').style.display='none'}catch(e){}if(!authHandled){if(phoneLockEnabled()){let em='';try{em=localStorage.getItem('salaama_saved_email')||''}catch(e){}if(em)document.getElementById('unlockEmail').innerText=em;document.getElementById('unlockName').innerText=(localStorage.getItem('salaama_saved_name')||'User');show('scr-unlock')}else show('scr-login')}},1200);
+setTimeout(()=>{try{document.getElementById('splash').style.display='none'}catch(e){}if(!authHandled){if(phoneLockEnabled()){let em='';try{em=localStorage.getItem('salaama_saved_email')||''}catch(e){}if(em)document.getElementById('unlockEmail').innerText=em;document.getElementById('unlockName').innerText=(localStorage.getItem('salaama_saved_name')||'User');show('scr-unlock')}else show('scr-login')}},4600);
 let deferredPrompt=null;window.addEventListener('beforeinstallprompt',(e)=>{e.preventDefault();deferredPrompt=e;document.getElementById('installBtn').style.display='block'});
 async function installApp(){if(deferredPrompt){deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;document.getElementById('installBtn').style.display='none'}else{alert('Android: Chrome > 3 dots > Add to Home screen')}}
 </script></body></html>
