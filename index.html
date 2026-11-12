@@ -323,20 +323,27 @@ async function loadDashboard(){
 try{
 let sSnap=await db.collection('students').get();
 let fSnap=await db.collection('fees').get();
-
-// FIX 1: Don't count the fake _init doc
 let realStudents=0;
 sSnap.forEach(d=>{ if(!d.data()._init) realStudents++; });
-
 let collected=0;
 fSnap.forEach(d=>{ if(!d.data()._init) collected+=Number(d.data().amount||0); });
-
 let aSnap=await db.collection('attendance').where('date','==',new Date().toDateString()).get();
 let realPresent=0;
 aSnap.forEach(d=>{ if(!d.data()._init) realPresent++; });
 
-// FIX 2: Only finance roles see Collected
-let isFinance = ['admin','headteacher','bursar'].includes(cur) || isDeveloper;
+// === FIX ALL ROLES ===
+let isFinance = ['admin','bursar'].includes(cur) || isDeveloper;
+let isTeacherLike = ['teacher_sec','teacher_theo','tahfiizu','other'].includes(cur);
+
+// Hide / Show Live Data BOX
+let liveCard = null;
+document.querySelectorAll('#scr-dash .card').forEach(c=>{
+  if(c.querySelector('h3') && c.querySelector('h3').innerText.includes('Live Data')) liveCard = c;
+});
+if(liveCard){
+  if(isTeacherLike) liveCard.style.display='none';
+  else liveCard.style.display='';
+}
 
 if(cur==='parent'){
   let my=await db.collection('students').where('parentId','==',currentUid).get();
@@ -345,11 +352,9 @@ if(cur==='parent'){
   document.getElementById('dashStats').innerHTML=`<div class="stat"><b>${myCount}</b><span>My Children</span></div><div class="stat"><b>${bal.toLocaleString()}</b><span>My Balance</span></div><div class="stat"><b>${realPresent}</b><span>Present Today</span></div>`
 }
 else if(isFinance){
-  // Admin, Headteacher, Bursar, Developer - SEE Collected
   document.getElementById('dashStats').innerHTML=`<div class="stat"><b>${realStudents}</b><span>Students</span></div><div class="stat"><b>${collected.toLocaleString()}</b><span>Collected</span></div><div class="stat"><b>${realPresent}</b><span>Present Today</span></div>`
 }
 else{
-  // D.O.S, Teacher, Tahfiizu, Other - NO Collected
   document.getElementById('dashStats').innerHTML=`<div class="stat"><b>${realStudents}</b><span>Students</span></div><div class="stat"><b>${realPresent}</b><span>Present Today</span></div>`
 }
 await loadLiveStudents();
@@ -357,7 +362,18 @@ await loadLiveStudents();
 }
 async function loadLiveStudents(){
 let el=document.getElementById('liveData');if(!firebaseReady){el.innerText='Firebase not connected';return}
-try{let snap;if(cur==='parent'&&currentUid)snap=await db.collection('students').where('parentId','==',currentUid).get();else snap=await db.collection('students').limit(20).get();if(snap.empty){el.innerHTML='No students yet.';return}let html='';snap.forEach(d=>{let s=d.data();if(s._init)return;html+=`🧒 ${s.name||'-'} - ${s.cls||''} - Fees ${s.fees||''} - Paid ${s.paid||''} - Balance ${(s.fees||0)-(s.paid||0)}<br>`});el.innerHTML=html||'No students yet.'}catch(e){el.innerText='Error: '+e.message}
+try{
+if(['teacher_sec','teacher_theo','tahfiizu','other'].includes(cur)){ el.innerHTML=''; return; }
+let snap;if(cur==='parent'&&currentUid)snap=await db.collection('students').where('parentId','==',currentUid).get();else snap=await db.collection('students').limit(20).get();
+if(snap.empty){el.innerHTML='No students yet.';return}
+let html='';snap.forEach(d=>{let s=d.data();if(s._init)return;
+if(['admin','bursar'].includes(cur) || isDeveloper || cur==='parent'){
+  html+=`🧒 ${s.name||'-'} - ${s.cls||''} - Fees ${s.fees||''} - Paid ${s.paid||''} - Balance ${(s.fees||0)-(s.paid||0)}<br>`;
+} else if(['dos_sec','dos_theo','headteacher'].includes(cur)){
+  html+=`🧒 ${s.name||'-'} - ${s.cls||''}<br>`;
+}
+});
+el.innerHTML=html||'No students yet.'}catch(e){el.innerText='Error: '+e.message}
 }
 async function loadPendingUsers(){let el=document.getElementById('pendingList');if(!el)return;try{let snap=await db.collection('users').where('approved','==',false).get();if(snap.empty){el.innerHTML='No pending users.';return}let html='';snap.forEach(doc=>{let u=doc.data();if(isDevEmail(u.email))return;html+=`<div style="border:1px solid #FF9800;border-radius:10px;padding:8px;margin:6px 0;background:#FFF3E0"><b>${u.name||u.email}</b><br>${u.email}<br>Requested: ${(u.roles||[]).join(', ')}<br><button class="btn btn-green" style="width:auto;padding:8px 12px" onclick="approveUser('${doc.id}')">Approve</button> <button class="btn btn-red" style="width:auto;padding:8px 12px" onclick="rejectUser('${doc.id}')">Reject</button></div>`});el.innerHTML=html||'No pending users.'}catch(e){el.innerHTML='Error: '+e.message}}
 async function approveUser(uid){try{let doc=await db.collection('users').doc(uid).get();let roles=doc.data().roles||[];let isAdmin=roles.includes('admin');let finalRoles=isAdmin?SCHOOL_ADMIN_ROLES:roles;await db.collection('users').doc(uid).update({approved:true,approvedRoles:finalRoles,isSchoolAdmin:isAdmin,status:'approved'});alert('Approved.');loadPendingUsers()}catch(e){alert(e.message)}}
