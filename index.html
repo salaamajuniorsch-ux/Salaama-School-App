@@ -617,11 +617,6 @@ async function saveStudent(){
     createdAt:new Date()
   });
     fees:Number(document.getElementById('st-fees').value||0),
-    paid:Number(document.getElementById('st-paid').value||0),
-    parentIds:[], // will fill when parents link with ID
-    linkedParentUids:[],
-    createdAt:new Date()
-  });
   alert('Student Saved!\nStudent ID: '+sid+'\n\nGive this ID to Father: '+father+' ('+fPhone+') and Mother: '+mother+' ('+mPhone+')\nThey both enter same ID to see child.');
   listStudents(); loadDashboard();
 }
