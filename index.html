@@ -92,7 +92,7 @@ let appSettings={allowDeleteStudents:false,allowDeleteTeachers:false,allowPng:tr
 function isDevEmail(e){return (e||'').toLowerCase().trim()===DEV_EMAIL}
 function setMsg(t,c){let m=document.getElementById('loginMsg');if(!m)return;m.style.color=c||'#E53935';m.innerText=t}
 function setBusy(b,id,l){let x=document.getElementById(id);if(x){x.disabled=b;x.innerText=b?'Please wait...':l}}
-function togglePass(){var p=document.getElementById('f-pass');var b=document.getElementById('eyeBtn');if(p.type==='password'){p.type='text';b.innerText='HIDE';}else{p.type='password';b.innerText='SHOW';}}
+function togglePass(){var p=document.getElementById('f-pass');var b=document.getElementById('eyeBtn');if(!p||!b) return;if(p.type==='password'){p.type='text'; b.textContent='HIDE';}else{p.type='password'; b.textContent='SHOW';}}
 function show(id){closeDrawer();document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));let el=document.getElementById(id);if(el)el.classList.add('active');window.scrollTo(0,0)}
 function goDash(){show('scr-dash')} function goRoles(){renderRoleList();show('scr-role')}
 function phoneLockEnabled(){try{return localStorage.getItem('salaama_phone_lock')==='1'&&!!localStorage.getItem('salaama_saved_email')}catch(e){return false}}
