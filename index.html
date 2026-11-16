@@ -464,7 +464,7 @@ async function approveUser(uid){try{let doc=await db.collection('users').doc(uid
 async function rejectUser(uid){if(!confirm('Reject this user?'))return;await db.collection('users').doc(uid).update({approved:false,approvedRoles:[],status:'rejected',roles:[]});alert('Rejected');loadPendingUsers()}
 async function makeSchoolAdmin(){let em=document.getElementById('mk-admin-email').value.trim().toLowerCase();if(!em){alert('Enter Email');return}let s=await db.collection('users').where('email','==',em).get();if(s.empty){alert('That person must Create Account first with that email.');return}s.forEach(async d=>{await db.collection('users').doc(d.id).update({approved:true,approvedRoles:SCHOOL_ADMIN_ROLES,roles:SCHOOL_ADMIN_ROLES,isSchoolAdmin:true,status:'approved'});alert('Made School Admin - 4 Roles: Admin, Headteacher, Bursar, Parent');listAllUsers()})}
 async function listAllUsers(){try{let s=await db.collection('users').get();let h='';s.forEach(d=>{let x=d.data();if(x._init)return;h+=`<div class="card"><b>${x.name}</b><br>${x.email}<br>Roles: ${(x.approvedRoles||[]).join(', ')}<br>${isDevEmail(x.email)?'DEVELOPER':x.isSchoolAdmin?'SCHOOL ADMIN':'User'}</div>`});document.getElementById('listBox').innerHTML=h||'No users yet.'}catch(e){document.getElementById('listBox').innerHTML='Error: '+e.message}}
-function openScreen(title){
+
 document.getElementById('detailTitle').innerText=title;let h=`<div class="card"><h3>${title}</h3>`;
 if(title==='My Class Teacher'){
   h+=`<div id="ctBox">Loading your class...</div>`;
